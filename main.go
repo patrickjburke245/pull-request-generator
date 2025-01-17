@@ -18,8 +18,8 @@ import (
 
 func main() {
 	// Get token from environment variable
-	githubToken := os.Getenv("GITHUB_TOKEN")
-	if githubToken == "" {
+	githubPersonalAccessToken := os.Getenv("GITHUB_TOKEN")
+	if githubPersonalAccessToken == "" {
 		fmt.Println("Error: GITHUB_TOKEN environment variable not set")
 		return
 	}
@@ -42,7 +42,7 @@ func main() {
 	// Set up authentication
 	auth := &http.BasicAuth{
 		Username: "x-access-token",
-		Password: githubToken,
+		Password: githubPersonalAccessToken,
 	}
 
 	// Clone repository
@@ -144,7 +144,7 @@ resource "aws_rds_cluster" "app1-rds-cluster" {
 
 	// Create PR
 	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: githubToken})
+	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: githubPersonalAccessToken})
 	tc := oauth2.NewClient(ctx, ts)
 	client := github.NewClient(tc)
 
