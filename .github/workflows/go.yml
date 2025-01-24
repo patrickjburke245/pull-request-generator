@@ -26,3 +26,9 @@ jobs:
 
     - name: Test
       run: go test -v ./...
+
+    - name: Upload pull-request-generator binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: pull-request-generator
+        path: pull-request-generator
