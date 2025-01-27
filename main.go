@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -13,47 +14,36 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/google/go-github/v57/github"
+	"github.com/joho/godotenv"
 	"golang.org/x/oauth2"
 )
 
 func main() {
-	// Get token from environment variable
-	githubToken := os.Getenv("GITHUB_TOKEN")
-	if githubToken == "" {
+	// Get values from environment variables
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	githubPersonalAccessToken := os.Getenv("GITHUB_TOKEN")
+	if githubPersonalAccessToken == "" {
 		fmt.Println("Error: GITHUB_TOKEN environment variable not set")
 		return
 	}
 
-	// Configuration
-	const (
-		repoURL      = "https://github.com/patrickjburke245/terragoat.git"
-		branchPrefix = "feature"
-		authorName   = "Patrick Burke"
-		authorEmail  = "24pburke@gmail.com"
-		baseBranch   = "master" // Changed from "main" to "master"
-		commitMsg    = "Add example changes"
-		prTitle      = "Feature: Add example changes"
-		prBody       = "This PR adds example changes to the repository."
-	)
+	repoURL := os.Getenv("REPO_URL")
+	branchPrefix := os.Getenv("BRANCH_PREFIX")
+	authorName := os.Getenv("AUTHOR_NAME")
+	authorEmail := os.Getenv("AUTHOR_EMAIL")
+	baseBranch := os.Getenv("BASE_BRANCH")
+	commitMsg := os.Getenv("COMMIT_MESSAGE")
+	prTitle := os.Getenv("PR_TITLE")
+	prBody := os.Getenv("PR_BODY")
 
-	// Generate unique branch name
-	branchName := fmt.Sprintf("%s-%s", branchPrefix, time.Now().Format("20060102-150405"))
-
-	// Set up authentication
-	auth := &http.BasicAuth{
-		Username: "x-access-token",
-		Password: githubToken,
-	}
-
-	// Clone repository
-	fmt.Println("Cloning repository...")
-	repo, err := git.PlainClone("./terragoat", false, &git.CloneOptions{
-		URL:      repoURL,
-		Progress: os.Stdout,
-		Auth:     auth,
-	})
-	if err != nil && err != git.ErrRepositoryAlreadyExists {
-		fmt.Printf("Error cloning: %s\n", err)
+	//Get code
+	branchName, repo, auth, err := GetCode(branchPrefix, repoURL, githubPersonalAccessToken)
+	if err != nil {
+		fmt.Printf("Error retrieving code: %s\n", err)
 		return
 	}
 
@@ -88,19 +78,8 @@ func main() {
 	// Create an example file
 	exampleFile := "./terragoat/example2.tf"
 	fmt.Printf("Creating file: %s\n", exampleFile)
-	err = os.WriteFile(exampleFile, []byte(`
-resource "aws_rds_cluster" "app1-rds-cluster" {
-    cluster_identifier      = "app1-rds-cluster"
-    allocated_storage       = 10
-    backup_retention_period = 0
-    storage_encrypted       = false
-    
-    tags = {
-        environment = "development"
-        managed_by  = "terraform"
-    }
-}
-`), 0644)
+	content, err := os.ReadFile("new_resource.tf")
+	err = os.WriteFile(exampleFile, content, 0644)
 	if err != nil {
 		fmt.Printf("Error creating file: %s\n", err)
 		return
@@ -144,7 +123,7 @@ resource "aws_rds_cluster" "app1-rds-cluster" {
 
 	// Create PR
 	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: githubToken})
+	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: githubPersonalAccessToken})
 	tc := oauth2.NewClient(ctx, ts)
 	client := github.NewClient(tc)
 
@@ -168,4 +147,35 @@ resource "aws_rds_cluster" "app1-rds-cluster" {
 
 	fmt.Printf("Successfully created PR #%d\n", pr.GetNumber())
 	fmt.Printf("PR URL: %s\n", pr.GetHTMLURL())
+
+	dirRemovalErr := os.RemoveAll("./terragoat")
+	if dirRemovalErr != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Successfully removed directory.\n")
+}
+
+func GetCode(branchPrefix string, repoURL string, githubPersonalAccessToken string) (string, *git.Repository, *http.BasicAuth, error) {
+	// Generate unique branch name
+	branchName := fmt.Sprintf("%s-%s", branchPrefix, time.Now().Format("20060102-150405"))
+
+	// Set up authentication
+	auth := &http.BasicAuth{
+		Username: "x-access-token",
+		Password: githubPersonalAccessToken,
+	}
+
+	// Clone repository
+	fmt.Println("Cloning repository...")
+	repo, err := git.PlainClone("./terragoat", false, &git.CloneOptions{
+		URL:      repoURL,
+		Progress: os.Stdout,
+		Auth:     auth,
+	})
+	if err != nil && err != git.ErrRepositoryAlreadyExists {
+		fmt.Printf("Error cloning: %s\n", err)
+		return "", nil, nil, err
+	}
+
+	return branchName, repo, auth, nil
 }
