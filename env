@@ -7,3 +7,5 @@ BASE_BRANCH="Most often main or master (legacy repos)"
 COMMIT_MESSAGE="Commit message for the changes"
 PR_TITLE="Title of your PR"
 PR_BODY="Body of your PR."
+GEMINI_API_KEY="gemini-api-key"
+

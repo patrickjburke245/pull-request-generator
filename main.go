@@ -7,7 +7,8 @@ import (
 	"os"
 	"strings"
 	"time"
-
+	"math/rand"
+	"strconv"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -40,6 +41,28 @@ func main() {
 	prTitle := os.Getenv("PR_TITLE")
 	prBody := os.Getenv("PR_BODY")
 
+	bugId := strconv.Itoa(rand.Intn(3000))
+
+	if commitMsg == "<auto>" {
+		commitMsg = generateCommit("Generate a short, complete commit message for a Git commit fixing a specific bug with bug ID" + bugId)
+	}
+	if prTitle == "<auto>" {
+		prTitle = generateCommit("Generate a concise pull request title with no placeholders for a GitHub pull request related to the commit" + commitMsg)
+	}
+	if prBody== "<auto>" {
+		prBody = generateCommit("Write a GitHub pull request body for a pull request with the title '" + prTitle + "'.  Make the request body complete with no placeholders or sample text")
+	}
+	if branchPrefix == "<auto>" {
+		branchPrefix = generateCommit("Generate a GitHub branch name with no markdown to hold the pull request " + prTitle + " for bug ID " + bugId)
+		branchPrefix = strings.TrimSuffix(branchPrefix, "\n")
+	}
+
+
+	fmt.Println(commitMsg)
+	fmt.Println(prTitle)
+	fmt.Println(prBody)
+	fmt.Println(branchPrefix)
+	
 	//Get code
 	branchName, repo, auth, err := GetCode(branchPrefix, repoURL, githubPersonalAccessToken)
 	if err != nil {
@@ -62,7 +85,6 @@ func main() {
 		fmt.Printf("Error getting worktree: %s\n", err)
 		return
 	}
-
 	fmt.Printf("Creating and checking out branch: %s\n", branchName)
 	b := plumbing.NewBranchReferenceName(branchName)
 	err = w.Checkout(&git.CheckoutOptions{
@@ -158,7 +180,7 @@ func main() {
 func GetCode(branchPrefix string, repoURL string, githubPersonalAccessToken string) (string, *git.Repository, *http.BasicAuth, error) {
 	// Generate unique branch name
 	branchName := fmt.Sprintf("%s-%s", branchPrefix, time.Now().Format("20060102-150405"))
-
+	// branchName := branchPrefix
 	// Set up authentication
 	auth := &http.BasicAuth{
 		Username: "x-access-token",
