@@ -50,10 +50,11 @@ func main() {
 		prTitle = generateCommit("Generate a concise pull request title with no placeholders for a GitHub pull request related to the commit" + commitMsg)
 	}
 	if prBody== "<auto>" {
-		prBody = generateCommit("Generate a pull request body with no placeholders for a GitHub pull request with the title " + prTitle)
+		prBody = generateCommit("Write a GitHub pull request body for a pull request with the title '" + prTitle + "'.  Make the request body complete with no placeholders or sample text")
 	}
 	if branchPrefix == "<auto>" {
 		branchPrefix = generateCommit("Generate a GitHub branch name with no markdown to hold the pull request " + prTitle + " for bug ID " + bugId)
+		branchPrefix = strings.TrimSuffix(branchPrefix, "\n")
 	}
 
 
