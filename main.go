@@ -3,12 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
-	"os"
-	"strings"
-	"time"
-	"math/rand"
-	"strconv"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -17,6 +11,12 @@ import (
 	"github.com/google/go-github/v57/github"
 	"github.com/joho/godotenv"
 	"golang.org/x/oauth2"
+	"log"
+	"math/rand"
+	"os"
+	"strconv"
+	"strings"
+	"time"
 )
 
 func main() {
@@ -41,6 +41,8 @@ func main() {
 	prTitle := os.Getenv("PR_TITLE")
 	prBody := os.Getenv("PR_BODY")
 
+	_, pythonPackage, pythonVersion := getPythonVuln(githubPersonalAccessToken)
+
 	bugId := strconv.Itoa(rand.Intn(3000))
 
 	if commitMsg == "<auto>" {
@@ -49,7 +51,7 @@ func main() {
 	if prTitle == "<auto>" {
 		prTitle = generateCommit("Generate a concise pull request title with no placeholders for a GitHub pull request related to the commit" + commitMsg)
 	}
-	if prBody== "<auto>" {
+	if prBody == "<auto>" {
 		prBody = generateCommit("Write a GitHub pull request body for a pull request with the title '" + prTitle + "'.  Make the request body complete with no placeholders or sample text")
 	}
 	if branchPrefix == "<auto>" {
@@ -57,12 +59,11 @@ func main() {
 		branchPrefix = strings.TrimSuffix(branchPrefix, "\n")
 	}
 
-
 	fmt.Println(commitMsg)
 	fmt.Println(prTitle)
 	fmt.Println(prBody)
 	fmt.Println(branchPrefix)
-	
+
 	//Get code
 	branchName, repo, auth, err := GetCode(branchPrefix, repoURL, githubPersonalAccessToken)
 	if err != nil {
@@ -106,6 +107,9 @@ func main() {
 		fmt.Printf("Error creating file: %s\n", err)
 		return
 	}
+
+	// Create a Python vuln if requirements.txt exists
+	writePythonVuln(pythonPackage, pythonVersion)
 
 	// Stage changes
 	fmt.Println("Staging changes...")

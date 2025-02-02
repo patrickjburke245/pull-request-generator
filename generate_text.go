@@ -24,9 +24,9 @@ func generateCommit(questionText string) string {
 	}
 
 	// printResponse(resp)
-	
-	return string(resp.Candidates[0].Content.Parts[0].(genai.Text)) 
-	
+
+	return string(resp.Candidates[0].Content.Parts[0].(genai.Text))
+
 }
 
 func printResponse(resp *genai.GenerateContentResponse) {
