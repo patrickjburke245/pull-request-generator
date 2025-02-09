@@ -109,6 +109,11 @@ func main() {
 	exampleFile := "./terragoat/example2.tf"
 	fmt.Printf("Creating file: %s\n", exampleFile)
 	content, err := os.ReadFile("new_resource.tf")
+	if err != nil {
+		fmt.Printf("Error opening file: %s\n", err)
+		return
+	}
+	defer content.Close()
 	err = os.WriteFile(exampleFile, content, 0644)
 	if err != nil {
 		fmt.Printf("Error creating file: %s\n", err)
