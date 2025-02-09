@@ -12,7 +12,9 @@ import (
 	"github.com/joho/godotenv"
 	"golang.org/x/oauth2"
 	"log"
-	"math/rand"
+	// don't need cryptographically secure random here
+	// nosemgrep: go.lang.security.audit.crypto.math_random.math-random-used
+	"math/rand/v2"
 	"os"
 	"strconv"
 	"strings"
@@ -43,7 +45,7 @@ func main() {
 
 	_, pythonPackage, pythonVersion := getPythonVuln(githubPersonalAccessToken)
 
-	bugId := strconv.Itoa(rand.Intn(3000))
+	bugId := strconv.Itoa(rand.IntN(3000))
 
 	if commitMsg == "<auto>" {
 		commitMsg = generateCommit("Generate a short, complete commit message for a Git commit fixing a specific bug with bug ID" + bugId)
