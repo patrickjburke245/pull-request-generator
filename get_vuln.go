@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/google/go-github/v57/github"
 	"log"
+	// don't need cryptographically secure random here
+	// nosemgrep: go.lang.security.audit.crypto.math_random.math-random-used
 	"math/rand/v2"
 	"os"
 	"path/filepath"

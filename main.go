@@ -86,7 +86,7 @@ func main() {
 			log.Fatal(err)
 		}
 		fmt.Printf("Successfully removed directory.\n")
-	}
+	}()
 	// Create and checkout new branch
 	w, err := repo.Worktree()
 	if err != nil {
@@ -113,7 +113,6 @@ func main() {
 		fmt.Printf("Error opening file: %s\n", err)
 		return
 	}
-	defer content.Close()
 	err = os.WriteFile(exampleFile, content, 0644)
 	if err != nil {
 		fmt.Printf("Error creating file: %s\n", err)
